@@ -81,23 +81,38 @@ def extract_keywords(text: str, top_n: int = 50) -> list[str]:
 
 
 # --- JD expansion + caching to reduce LLM calls ---
+_MEMORY_CACHE = {}
 _CACHE_PATH = Path("data/jd_keyword_cache.json")
+try:
+    _CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+except Exception:
+     # Fallback for serverless/read-only envs
+    import tempfile
+    _CACHE_PATH = Path(tempfile.gettempdir()) / "opticv_jd_cache.json"
+
 _CACHE_TTL = 60 * 60 * 24 * 30  # 30 days
 
 
 def _load_cache() -> dict:
-    if not _CACHE_PATH.exists():
-        return {}
-    try:
-        return json.loads(_CACHE_PATH.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
+    # If memory empty, try hydrate from file
+    if not _MEMORY_CACHE and _CACHE_PATH.exists():
+        try:
+            data = json.loads(_CACHE_PATH.read_text(encoding="utf-8"))
+            _MEMORY_CACHE.update(data)
+        except Exception:
+            pass
+    return _MEMORY_CACHE
 
 
 def _save_cache(cache: dict) -> None:
+    # Update memory reference if needed
+    if cache is not _MEMORY_CACHE:
+        _MEMORY_CACHE.update(cache)
+        
     try:
-        _CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        _CACHE_PATH.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
+        if not _CACHE_PATH.parent.exists():
+             _CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        _CACHE_PATH.write_text(json.dumps(_MEMORY_CACHE, ensure_ascii=False, indent=2), encoding="utf-8")
     except Exception:
         pass
 

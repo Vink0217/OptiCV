@@ -13,9 +13,23 @@ logger = logging.getLogger("opticv.generate")
 
 router = APIRouter()
 
-# Simple file-based cache for generated resumes
+# Hybrid Cache Strategy: Memory + File (Best Effort)
+MEMORY_CACHE = {}
+MEMORY_CACHE_LIMIT = 50 
+
+# File-based cache configuration
 CACHE_DIR = Path("data/resume_cache")
-CACHE_DIR.mkdir(parents=True, exist_ok=True)
+try:
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+except Exception:
+    # Fallback to /tmp if we can't write to data/resume_cache (e.g. Vercel/read-only)
+    import tempfile
+    CACHE_DIR = Path(tempfile.gettempdir()) / "opticv_cache"
+    try:
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        pass # If we can't even make a tmp dir, we'll rely solely on MEMORY_CACHE
+
 CACHE_TTL = 60 * 60 * 24 * 7  # 7 days
 
 
@@ -27,18 +41,39 @@ def _get_cache_key(input_data: ResumeInput) -> str:
 
 def _load_from_cache(cache_key: str) -> dict | None:
     """Load cached resume if exists and not expired."""
+    current_time = time.time()
+
+    # 1. Check Memory Cache first (Fastest, works in serverless warm starts)
+    if cache_key in MEMORY_CACHE:
+        data = MEMORY_CACHE[cache_key]
+        if current_time - data.get("timestamp", 0) < CACHE_TTL:
+             logger.info("Memory Cache hit for key=%s", cache_key[:16])
+             return data.get("result")
+        else:
+            del MEMORY_CACHE[cache_key]
+
+    # 2. Check File Cache (Persistence across restarts if filesystem allows)
     cache_file = CACHE_DIR / f"{cache_key}.json"
     if not cache_file.exists():
         return None
     
     try:
         data = json.loads(cache_file.read_text(encoding="utf-8"))
-        if time.time() - data.get("timestamp", 0) < CACHE_TTL:
-            logger.info("Cache hit for key=%s", cache_key[:16])
+        if current_time - data.get("timestamp", 0) < CACHE_TTL:
+            logger.info("File Cache hit for key=%s", cache_key[:16])
+            
+            # Repopulate memory cache
+            if len(MEMORY_CACHE) >= MEMORY_CACHE_LIMIT:
+                MEMORY_CACHE.pop(next(iter(MEMORY_CACHE)))
+            MEMORY_CACHE[cache_key] = data
+            
             return data.get("result")
         else:
             logger.info("Cache expired for key=%s", cache_key[:16])
-            cache_file.unlink()  # Delete expired cache
+            try:
+                cache_file.unlink()  # Delete expired cache
+            except OSError:
+                pass
     except Exception as e:
         logger.warning("Failed to load cache: %s", e)
     
@@ -47,15 +82,27 @@ def _load_from_cache(cache_key: str) -> dict | None:
 
 def _save_to_cache(cache_key: str, result: dict) -> None:
     """Save result to cache."""
-    cache_file = CACHE_DIR / f"{cache_key}.json"
+    data = {"timestamp": time.time(), "result": result}
+    
+    # 1. Save to Memory
+    if len(MEMORY_CACHE) >= MEMORY_CACHE_LIMIT:
+        # Simple FIFO eviction
+        MEMORY_CACHE.pop(next(iter(MEMORY_CACHE)))
+    MEMORY_CACHE[cache_key] = data
+
+    # 2. Save to File (Best effort for persistence)
     try:
+        if not CACHE_DIR.exists():
+             CACHE_DIR.mkdir(parents=True, exist_ok=True)
+             
+        cache_file = CACHE_DIR / f"{cache_key}.json"
         cache_file.write_text(
-            json.dumps({"timestamp": time.time(), "result": result}, ensure_ascii=False, indent=2),
+            json.dumps(data, ensure_ascii=False, indent=2),
             encoding="utf-8"
         )
         logger.info("Saved to cache key=%s", cache_key[:16])
     except Exception as e:
-        logger.warning("Failed to save cache: %s", e)
+        logger.warning("Failed to save file cache (relying on memory): %s", e)
 
 
 @router.post("/generate")
