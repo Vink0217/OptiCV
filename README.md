@@ -1,9 +1,10 @@
 # OptiCV — AI Resume Optimizer
 
 OptiCV is an AI-powered resume optimization tool that parses PDF/DOCX resumes, scores them against a job description using a hybrid (algorithmic + AI) ATS engine, and generates ATS-friendly PDF/DOCX output. It preserves hyperlinks (LinkedIn, GitHub), enforces consistent date formatting, and provides section-level enhancements.
-Demo video (Google Drive): https://drive.google.com/file/d/DRIVE_FILE_ID/view (replace DRIVE_FILE_ID with your file id)
 
-Deployed to Vercel: frontend + backend are deployed. Production frontend URL (example): https://opti-cv-flame.vercel.app
+Demo video (Google Drive): [Watch the demo walkthrough](https://drive.google.com/file/d/1ifxE2v6wkjxhJpUDyhGYRKxAPdNGK7uP/view?usp=sharing)
+
+Deployed to Vercel: frontend and backend are deployed. Production frontend URL: [https://opti-cv-flame.vercel.app](https://opti-cv-flame.vercel.app)
 Features
 - AI parsing (PDF/DOCX) and structured extraction
 - Hybrid ATS scoring (deterministic keyword/format checks + Gemini semantic scoring)
