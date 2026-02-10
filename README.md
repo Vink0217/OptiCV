@@ -2,7 +2,6 @@
 
 **OptiCV** is an advanced AI-powered resume optimization platform designed to help job seekers bypass Applicant Tracking Systems (ATS). By leveraging Google's **Gemini 2.5 Flash** model, OptiCV parses, analyzes, scores, and rewrites resumes to perfectly align with specific job descriptions.
 
-![OptiCV Dashboard](https://via.placeholder.com/800x400?text=OptiCV+Dashboard+Preview)
 
 ## ✨ Features
 
