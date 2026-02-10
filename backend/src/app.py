@@ -2,8 +2,28 @@
 from dotenv import load_dotenv
 load_dotenv()  # Load .env file
 
-from fastapi import FastAPI
+import logging
+import time
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("opticv")
+
+
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        start = time.time()
+        try:
+            body = await request.body()
+            logger.debug("Incoming request %s %s body=%s", request.method, request.url.path, body.decode('utf-8', errors='replace')[:200])
+        except Exception:
+            logger.debug("Incoming request %s %s (body read failed)", request.method, request.url.path)
+        response = await call_next(request)
+        duration = (time.time() - start) * 1000
+        logger.info("%s %s -> %s (%.0fms)", request.method, request.url.path, response.status_code, duration)
+        return response
 
 from .routers.parse import router as parse_router
 from .routers.download import router as download_router
@@ -14,6 +34,9 @@ from .routers.chat import router as chat_router
 
 
 app = FastAPI(title="OptiCV Backend")
+
+# attach request logging middleware early so we capture all requests
+app.add_middleware(RequestLoggingMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
