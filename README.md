@@ -1,4 +1,3 @@
-"""
 # OptiCV 🚀
 
 **OptiCV** is an advanced AI-powered resume optimization platform designed to help job seekers bypass Applicant Tracking Systems (ATS). By leveraging Google's **Gemini 2.5 Flash** model, OptiCV parses, analyzes, scores, and rewrites resumes to align with specific job descriptions.
@@ -6,7 +5,7 @@
 Demo video (Google Drive): [Watch the demo walkthrough](https://drive.google.com/file/d/1ifxE2v6wkjxhJpUDyhGYRKxAPdNGK7uP/view?usp=sharing)
 
 Deployed to Vercel: frontend and backend are deployed. Production frontend URL: [https://opti-cv-flame.vercel.app](https://opti-cv-flame.vercel.app)
-"""
+
 
 ## ✨ Features
 
