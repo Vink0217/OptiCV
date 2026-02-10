@@ -78,6 +78,12 @@ class ATSScore(BaseModel):
     suggestions: list[str] = Field(default_factory=list, description="Actionable improvement suggestions")
 
 
+class CombinedResumeResponse(BaseModel):
+    """Single LLM call response: resume generation + ATS scoring + suggestions."""
+    resume_data: ResumeData = Field(..., description="Generated ATS-optimized resume")
+    ats_score: ATSScore = Field(..., description="ATS score breakdown and suggestions")
+
+
 class SkillGapAnalysis(BaseModel):
     """Analysis of skill gaps between resume and job description."""
     matched_skills: list[str] = Field(default_factory=list, description="Skills present in both JD and resume")

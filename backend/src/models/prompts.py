@@ -3,80 +3,6 @@ Prompt templates for Gemini AI interactions.
 Each prompt is documented with its purpose and expected output.
 """
 
-# --- Resume Generation Prompt ---
-
-RESUME_GENERATION_PROMPT = """
-You are a senior technical resume strategist and ATS optimization expert.
-
-Your task is to generate a strictly ATS-compliant, professional resume that maximizes keyword matching, role alignment, and recruiter readability.
-
-=====================
-CANDIDATE INFORMATION
-=====================
-Full Name: {full_name}
-Phone Number: {phone}
-Email Address: {email}
-Target Job Role: {target_role}
-
-{job_description_section}
-{existing_resume_section}
-
-=====================
-CRITICAL CONSTRAINTS
-=====================
-You MUST follow ALL rules below. Violating any rule is considered a failure.
-
-STRUCTURE RULES:
-- Use ONLY these section headings, in this exact order:
-  1. Summary
-  2. Skills
-  3. Experience
-  4. Projects
-  5. Education
-  6. Certifications (ONLY if data exists; otherwise OMIT)
-
-FORMATTING RULES:
-- Plain text only (no tables, no columns, no icons, no emojis, no special symbols)
-- No headers, footers, page numbers, or decorative lines
-- No bolding, italics, bullet symbols other than simple hyphens (-)
-- Dates must strictly follow MM/YYYY format
-- Each role/project must have 2-5 bullet points, no more, no less
-
-CONTENT RULES:
-- DO NOT fabricate experience, companies, degrees, certifications, or dates
-- If information is missing, infer SKILLS only — never experience or education
-- Prioritize hard skills before soft skills
-- Use industry-standard keywords exactly as they appear in the job description
-- Every experience/project bullet must start with a strong action verb
-- Quantify impact wherever logically possible (%, $, time saved, scale)
-
-SUMMARY RULES:
-- 2-3 sentences ONLY
-- Must include: target role, years/level (if inferable), key technical skills, domain focus
-- No first-person pronouns (I, me, my)
-
-SKILLS RULES:
-- Group skills into logical categories (e.g., Programming Languages, Frameworks, Tools)
-- Avoid vague terms like “familiar with” or “basic knowledge”
-
-EXPERIENCE RULES:
-- Use reverse chronological order
-- Each role must include:
-  Job Title | Company Name | Location (if known)
-  MM/YYYY - MM/YYYY
-
-PROJECTS RULES:
-- Projects must demonstrate skills relevant to the target role
-- Each project must list technologies explicitly
-
-=====================
-OUTPUT REQUIREMENT
-=====================
-Return ONLY the complete resume text.
-Do NOT include explanations, notes, comments, or markdown.
-The output must be fully parseable by Applicant Tracking Systems.
-"""
-
 # --- ATS Scoring Prompt ---
 
 ATS_SCORING_PROMPT = """
@@ -242,6 +168,220 @@ Professional, clear, supportive, and honest.
 """
 
 
+# --- Unified Resume Generation + Scoring Prompt (Single LLM Call) ---
+
+UNIFIED_RESUME_GENERATION_SCORING_PROMPT = """
+You are an elite ATS resume strategist AND an Applicant Tracking System scoring engine.
+
+You must complete TWO tasks in ONE response:
+1. Generate a strictly ATS-optimized professional resume
+2. Objectively score that resume using ATS-style evaluation logic
+
+Failure to follow any rule below is considered a critical error.
+
+==================================================
+CANDIDATE INFORMATION (SOURCE OF TRUTH)
+==================================================
+Full Name: {full_name}
+Phone Number: {phone}
+Email Address: {email}
+Target Job Role: {target_role}
+
+{job_description_section}
+{existing_resume_section}
+
+==================================================
+GLOBAL NON-NEGOTIABLE CONSTRAINTS
+==================================================
+- DO NOT fabricate or assume:
+  • companies
+  • job titles
+  • dates
+  • degrees
+  • certifications
+- If information is missing, you may infer SKILLS ONLY
+- Never invent experience, education, or projects
+- Use plain text logic even though output is JSON
+- Maintain internal consistency between resume and ATS scoring
+- Be realistic, strict, and ATS-accurate
+
+==================================================
+PART 1: ATS RESUME GENERATION
+==================================================
+
+Generate a professional resume optimized for Applicant Tracking Systems.
+
+--------------------
+STRUCTURE RULES
+--------------------
+- Use ONLY these sections in EXACT order:
+  1. Summary
+  2. Skills
+  3. Experience
+  4. Projects
+  5. Education
+  6. Certifications (OMIT if no data exists)
+
+- No extra sections
+- No reordering
+- No empty sections
+
+--------------------
+FORMATTING RULES
+--------------------
+- Plain text only (no tables, columns, icons, emojis, special characters)
+- ATS-safe formatting only
+- Dates MUST be in MM/YYYY format
+- Each role/project MUST have 2-5 bullet points
+- Bullet points must be concise, single-sentence statements
+
+--------------------
+CONTENT RULES
+--------------------
+- Use job description keywords EXACTLY as written where applicable
+- Avoid keyword stuffing; integrate naturally
+- Start EVERY bullet point with a strong action verb
+- Quantify impact where logically possible (%, $, time, scale)
+- Prioritize relevance to the target role over verbosity
+
+--------------------
+SUMMARY RULES (2-3 sentences ONLY)
+--------------------
+- Must include:
+  • target role
+  • experience level (only if inferable)
+  • core technical skills
+  • domain focus
+- No first-person pronouns
+- No vague claims (e.g., “highly motivated”)
+
+--------------------
+SKILLS RULES
+--------------------
+- Group skills into logical categories
+- Prioritize hard/technical skills before soft skills
+- Avoid filler skills (e.g., “MS Word” unless role-relevant)
+
+--------------------
+EXPERIENCE & PROJECTS RULES
+--------------------
+- Reverse chronological order
+- Standard format:
+  Title | Company/Project Name | Location (if known) | MM/YYYY - MM/YYYY
+- Emphasize responsibilities and impact aligned with target role
+
+==================================================
+PART 2: ATS SCORING & EVALUATION
+==================================================
+
+Evaluate ONLY the generated resume above against the provided job description.
+
+--------------------
+SCORING CATEGORIES (0-100)
+--------------------
+
+1. Keyword Match & Skill Coverage (30%)
+- Presence of required and preferred JD keywords
+- Skill overlap accuracy
+- Natural usage without stuffing
+
+2. Section Completeness & Depth (20%)
+- All required sections present
+- Adequate detail per section
+
+3. Role & Experience Alignment (25%)
+- Match between resume narrative and target role
+- Seniority and responsibility alignment
+
+4. ATS Formatting & Parseability (10%)
+- Standard headings
+- No parsing blockers
+- Consistent formatting
+
+5. Content Quality & Impact (15%)
+- Strong action verbs
+- Quantified achievements
+- Clarity and relevance
+
+--------------------
+OVERALL SCORE CALCULATION
+--------------------
+overall_score =
+(keyword_match * 0.30) +
+(section_completeness * 0.20) +
+(role_alignment * 0.25) +
+(formatting_score * 0.10) +
+(content_quality * 0.15)
+
+--------------------
+SCORING GUIDELINES
+--------------------
+90-100 → Exceptional (top-tier, interview-ready)
+75-89  → Strong (competitive)
+60-74  → Average (needs improvement)
+Below 60 → Weak (significant gaps)
+
+Be strict and realistic. Do not inflate scores.
+
+==================================================
+OUTPUT FORMAT (STRICT JSON)
+==================================================
+
+Return ONLY a valid JSON object.
+NO markdown.
+NO explanations outside JSON.
+NO trailing comments.
+
+{
+  "resume_data": {
+    "full_name": "",
+    "phone": "",
+    "email": "",
+    "target_role": "",
+    "summary": "",
+    "skills": {
+      "categories": {
+        "category_name": ["skill1", "skill2"]
+      }
+    },
+    "experience": [
+      {
+        "title": "",
+        "company": "",
+        "location": "",
+        "date_range": "",
+        "bullets": ["", ""]
+      }
+    ],
+    "projects": [
+      {
+        "name": "",
+        "technologies": ["", ""],
+        "bullets": ["", ""]
+      }
+    ],
+    "education": [
+      {
+        "degree": "",
+        "institution": "",
+        "date_range": ""
+      }
+    ],
+    "certifications": []
+  },
+  "ats_score": {
+    "overall_score": 0,
+    "keyword_match": 0,
+    "section_completeness": 0,
+    "role_alignment": 0,
+    "formatting_score": 0,
+    "content_quality": 0,
+    "explanation": "",
+    "missing_keywords": ["", ""],
+    "suggestions": ["", "", ""]
+  }
+}
+"""
 
 # --- Helper Functions ---
 
