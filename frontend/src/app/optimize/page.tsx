@@ -61,19 +61,34 @@ export default function OptimizePage() {
       });
       // Merge back any missing hyperlinks or contact fields from the original
       const merged = { ...res.resume_data } as any;
-      // Preserve contact fields if model omitted or changed them
+      
+      // Preserve contact fields if keys are missing or empty in the optimized version
       merged.linkedin = merged.linkedin || original.linkedin || "";
       merged.location = merged.location || original.location || "";
+      merged.email = merged.email || original.email || "";
+      merged.phone = merged.phone || original.phone || "";
 
-      // Merge project links: match by title (best-effort)
+      // Merge project links: match by title (fuzzy match)
       if (original.projects && merged.projects) {
-        const byTitle = new Map<string, any>();
-        original.projects.forEach((p: any) => { if (p.title) byTitle.set(p.title.toLowerCase(), p); });
+        const origProjectsWithLinks = original.projects.filter((p:any) => p.link);
+        
         merged.projects = merged.projects.map((p: any) => {
           if (!p) return p;
-          const key = (p.title || "").toLowerCase();
-          const orig = byTitle.get(key);
-          if (orig && !p.link && orig.link) p.link = orig.link;
+          // If already has link, keep it
+          if (p.link) return p;
+
+          // Try to find a match in original projects
+          const pTitleNorm = (p.title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+          
+          const match = origProjectsWithLinks.find((orig: any) => {
+             const oTitleNorm = (orig.title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+             // Check exact, or substring containment
+             return pTitleNorm && oTitleNorm && (pTitleNorm.includes(oTitleNorm) || oTitleNorm.includes(pTitleNorm));
+          });
+
+          if (match) {
+            p.link = match.link;
+          }
           return p;
         });
       }

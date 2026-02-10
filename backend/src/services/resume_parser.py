@@ -10,8 +10,24 @@ def extract_text_from_pdf_bytes(data: bytes) -> str:
 	if pdfplumber is None:
 		raise RuntimeError("pdfplumber is not installed")
 	with pdfplumber.open(io.BytesIO(data)) as pdf:
-		pages = [p.extract_text() or "" for p in pdf.pages]
-	return "\n".join(pages).strip()
+		pages = []
+		links = []
+		for p in pdf.pages:
+			pages.append(p.extract_text() or "")
+			# Extract hyperlinks if available
+			if hasattr(p, "hyperlinks"):
+				for link in p.hyperlinks:
+					uri = link.get("uri")
+					if uri:
+						links.append(uri)
+						
+	full_text = "\n".join(pages).strip()
+	
+	# Append found links so the AI can associate them
+	if links:
+		full_text += "\n\n--- EXTRACTED HYPERLINKS ---\n" + "\n".join(sorted(list(set(links))))
+		
+	return full_text
 
 
 def extract_text_from_docx_bytes(data: bytes) -> str:
