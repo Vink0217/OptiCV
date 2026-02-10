@@ -1,0 +1,56 @@
+{
+  "full_name": "V Vinayak",
+  "phone": "+91-XXXXXXXXXX",
+  "email": "vvinayakvinod@gmail.com",
+  "target_role": "Applied AI",
+  "summary": "Applied AI engineer with experience building production ML systems, embeddings pipelines and MLOps tooling.",
+  "skills": ["Python", "PyTorch", "TensorFlow", "NLP", "Computer Vision", "Docker", "Kubernetes", "SQL", "Pandas"],
+  "experience": [
+    {
+      "job_title": "Senior ML Engineer",
+      "company": "Cirrus Labs",
+      "location": "Bengaluru, India",
+      "start_date": "01/2023",
+      "end_date": "Present",
+      "responsibilities": [
+        "Designed and deployed vector search and embedding pipelines for product search using FAISS and OpenAI/Gemini embeddings.",
+        "Built end-to-end data ingestion, training and inference orchestration with CI/CD and monitoring.",
+        "Reduced inference latency 40% via model distillation and batching."
+      ]
+    },
+    {
+      "job_title": "Machine Learning Engineer",
+      "company": "Sumeru Digital",
+      "location": "Bengaluru, India",
+      "start_date": "06/2020",
+      "end_date": "12/2022",
+      "responsibilities": [
+        "Implemented NLP pipelines for named-entity extraction and intent classification for enterprise customers.",
+        "Improved model F1 by 12% through feature engineering and curriculum training."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "B.Tech, Computer Science",
+      "institution": "Example University",
+      "location": "City, Country",
+      "graduation_date": "05/2019",
+      "gpa": "8.2/10"
+    }
+  ],
+  "projects": [
+    {
+      "title": "Total-Recall (QA over Docs)",
+      "description": "Built a document question-answering system using embeddings + RAG with a streaming UI.",
+      "technologies": ["Python", "FAISS", "Transformers", "FastAPI"],
+      "link": "https://github.com/3xCaffeine/total-recall"
+    },
+    {
+      "title": "AtariTrainer",
+      "description": "RL research project training agents on Atari with PyTorch.",
+      "technologies": ["PyTorch", "Gym"],
+      "link": "https://github.com/Vink0217/AtariTrainer"
+    }
+  ]
+}

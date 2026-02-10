@@ -11,5 +11,5 @@ wheels/
 .github*
 .env
 backend/scripts/
-frontend/public/
+
 resume_cache/
