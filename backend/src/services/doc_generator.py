@@ -121,10 +121,57 @@ def generate_docx_bytes(resume: ResumeData) -> bytes:
             
             # 1. Title Line
             if link and (link.startswith("http://") or link.startswith("https://")):
-                 # Title vs Link (Clickable?) - simplistic approach: Title vs Link Text
-                 # python-docx is tricky with hyperlinks in the same run as separate text
-                 # simpler: Title on Left, Link Text on Right
-                 _add_two_column_line(doc, proj.title or "", link, bold=True)
+                # Left: Title, Right: "GitHub Link" (Hyperlink)
+                p = doc.add_paragraph()
+                p.paragraph_format.space_before = Pt(0)
+                p.paragraph_format.space_after = Pt(0)
+                tab_stops = p.paragraph_format.tab_stops
+                tab_stops.add_tab_stop(Inches(6.5), alignment=WD_ALIGN_PARAGRAPH.RIGHT)
+                
+                # Title (Left)
+                run_title = p.add_run(proj.title or "")
+                _set_run_font(run_title, bold=True)
+                
+                # Tab
+                p.add_run("\t")
+                
+                # Link (Right) - "GitHub Link"
+                # Add hyperlink part
+                part = doc.part
+                r_id = part.relate_to(link, "hyperlink", is_external=True)
+                
+                hyperlink = OxmlElement("w:hyperlink")
+                hyperlink.set(qn("r:id"), r_id)
+                
+                new_run = OxmlElement("w:r")
+                rPr = OxmlElement("w:rPr")
+                
+                # Style for link (Blue + Underline + Bold to match title line style)
+                color = OxmlElement("w:color")
+                color.set(qn("w:val"), "0000FF")
+                rPr.append(color)
+                
+                u = OxmlElement("w:u")
+                u.set(qn("w:val"), "single")
+                rPr.append(u)
+                
+                b = OxmlElement("w:b")
+                rPr.append(b)
+                
+                # Font size 9.5pt (19 half-points) - decreased by 1 from base 10.5
+                sz = OxmlElement("w:sz")
+                sz.set(qn("w:val"), "19")
+                rPr.append(sz)
+                szCs = OxmlElement("w:szCs")
+                szCs.set(qn("w:val"), "19")
+                rPr.append(szCs)
+                
+                new_run.append(rPr)
+                new_run.text = "GitHub Link"
+                
+                hyperlink.append(new_run)
+                p._p.append(hyperlink)
+
             else:
                  # Just title or Title vs Link text
                  _add_two_column_line(doc, proj.title or "", link, bold=True)
