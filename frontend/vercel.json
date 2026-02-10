@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://opti-9ch2o1mee-vinayaks-projects-617709e3.vercel.app/:path*" }
+    { "source": "/api/:path*", "destination": "opti-otbu1ugvz-vinayaks-projects-617709e3.vercel.app/:path*" }
   ]
 }
