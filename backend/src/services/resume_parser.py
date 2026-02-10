@@ -4,23 +4,31 @@ Resume parsing utilities: extract text from PDF or DOCX uploads.
 from typing import Optional
 import io
 
-# Lazy imports for optional parsing dependencies. Importing heavy
-# libs at module import time causes serverless cold-start failures
-# if a dependency isn't available. Import inside functions and
-# raise informative errors instead.
-
 def extract_text_from_pdf_bytes(data: bytes) -> str:
-	# Import pdfplumber lazily to avoid hard crash on import when
-	# the package isn't installed in the runtime.
+	# Prefer pdfplumber if available (it provides hyperlink extraction).
+	# If pdfplumber isn't installed (or fails to build on the host),
+	# fall back to pdfminer.six which is lighter and already in
+	# requirements.txt for plain-text extraction.
 	try:
 		import pdfplumber  # type: ignore
-	except Exception as e:
-		raise RuntimeError(
-			"pdfplumber is required to parse PDF resumes. "
-			"Install it (e.g. `pip install pdfplumber`) or include it in your deployment requirements. "
-			f"Underlying error: {e}"
-		)
+	except Exception:
+		# Fallback: use pdfminer.six to extract text
+		try:
+			from pdfminer.high_level import extract_text_to_fp
+			from pdfminer.layout import LAParams
+			from io import BytesIO
 
+			output = BytesIO()
+			extract_text_to_fp(BytesIO(data), output, laparams=LAParams())
+			text = output.getvalue().decode('utf-8', errors='ignore')
+			return text.strip()
+		except Exception as e:
+			raise RuntimeError(
+				"No suitable PDF parser is available. Install `pdfplumber` or ensure `pdfminer.six` is installed. "
+				f"Underlying error: {e}"
+			)
+
+	# If we reach here, pdfplumber is available
 	with pdfplumber.open(io.BytesIO(data)) as pdf:
 		pages = []
 		links = []
