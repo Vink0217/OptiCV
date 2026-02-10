@@ -14,9 +14,9 @@ export function ReactDatePicker({ value, onChange, placeholder }: {
     const iso = new Date(val);
     if (!Number.isNaN(iso.getTime())) return iso;
     // Try MM-yyyy and MM/yyyy
-    const p1 = parse(val, "MM-yyyy", new Date());
+    const p1 = parse(val, "MM/yyyy", new Date());
     if (isValid(p1)) return p1;
-    const p2 = parse(val, "MM/yyyy", new Date());
+    const p2 = parse(val, "MM-yyyy", new Date());
     if (isValid(p2)) return p2;
     return null;
   };
@@ -26,10 +26,10 @@ export function ReactDatePicker({ value, onChange, placeholder }: {
   return (
     <DatePicker
       selected={dateVal}
-      onChange={(date: Date | null) => onChange(date ? format(date, "MM-yyyy") : "")}
-      dateFormat="MM-yyyy"
+      onChange={(date: Date | null) => onChange(date ? format(date, "MM/yyyy") : "")}
+      dateFormat="MM/yyyy"
       showMonthYearPicker
-      placeholderText={placeholder || "MM-YYYY"}
+      placeholderText={placeholder || "MM/YYYY"}
       className="w-full rounded border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
       isClearable
     />

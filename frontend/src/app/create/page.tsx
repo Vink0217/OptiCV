@@ -181,8 +181,45 @@ export default function CreatePage() {
   // ── Array helpers ──
   const updateEdu = (i: number, field: keyof EduEntry, value: string) =>
     setEducation((prev) => prev.map((e, idx) => (idx === i ? { ...e, [field]: value } : e)));
-  const updateExp = (i: number, field: keyof ExpEntry, value: string) =>
-    setExperience((prev) => prev.map((e, idx) => (idx === i ? { ...e, [field]: value } : e)));
+  const updateExp = (i: number, field: keyof ExpEntry, value: string) => {
+    // Basic update first to get the provisional state
+    // But actually, we should just branch logic based on field type
+    
+    // Date validation specific branch
+    if (field === "start_date" || field === "end_date") {
+      setExperience(prev => {
+        const newData = [...prev];
+        const entry = { ...newData[i], [field]: value };
+        
+        if (entry.start_date && entry.end_date && entry.end_date.toLowerCase() !== "present") {
+          const parseDate = (d: string) => {
+            const parts = d.split(/[-/]/);
+            if (parts.length === 2 && parts[0] && parts[1]) {
+               try {
+                 return new Date(parseInt(parts[1]), parseInt(parts[0]) - 1);
+               } catch { return null; }
+            }
+            return null;
+          };
+          
+          const start = parseDate(entry.start_date);
+          const end = parseDate(entry.end_date);
+          
+          if (start && end && start > end) {
+            alert("Start date cannot be after end date.");
+            // Revert by not returning new state, or return prev
+            // Returning prev means usage of 'value' is ignored, which prevents the invalid feedback
+            return prev; 
+          }
+        }
+        newData[i] = entry;
+        return newData;
+      });
+    } else {
+       // Standard update for non-date fields
+       setExperience((prev) => prev.map((e, idx) => (idx === i ? { ...e, [field]: value } : e)));
+    }
+  };
   const updateProj = (i: number, field: keyof ProjEntry, value: string) =>
     setProjects((prev) => prev.map((p, idx) => (idx === i ? { ...p, [field]: value } : p)));
 
