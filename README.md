@@ -1,3 +1,67 @@
+# OptiCV — AI Resume Optimizer
+
+OptiCV is an AI-powered resume optimization tool that parses PDF/DOCX resumes, scores them against a job description using a hybrid (algorithmic + AI) ATS engine, and generates ATS-friendly PDF/DOCX output. It preserves hyperlinks (LinkedIn, GitHub), enforces consistent date formatting, and provides section-level enhancements.
+Demo video (Google Drive): https://drive.google.com/file/d/DRIVE_FILE_ID/view (replace DRIVE_FILE_ID with your file id)
+
+Deployed to Vercel: frontend + backend are deployed. Production frontend URL (example): https://opti-cv-flame.vercel.app
+Features
+- AI parsing (PDF/DOCX) and structured extraction
+- Hybrid ATS scoring (deterministic keyword/format checks + Gemini semantic scoring)
+- AI-driven re-optimization and per-section enhancement
+- ATS-friendly downloads (DOCX & PDF) with preserved hyperlinks
+
+Tech stack
+- Frontend: Next.js, TypeScript, Tailwind CSS, shadcn/ui
+- Backend: FastAPI, Pydantic, google-genai (Gemini), pdfminer.six / pdfplumber (fallback)
+Project layout
+```
+OptiCV/
+├─ backend/         # FastAPI backend (src/, requirements.txt)
+├─ frontend/        # Next.js frontend
+├─ PROMPTS.md       # Gemini prompts and ATS logic
+└─ README.md
+```
+
+Quick local setup
+Backend (from project root):
+```bash
+cd backend
+python -m venv venv
+# Windows
+venv\\Scripts\\activate
+# macOS/Linux
+# source venv/bin/activate
+pip install -r requirements.txt
+echo GEMINI_API_KEY=your_api_key_here > .env
+uvicorn src.app:app --reload --port 8000
+```
+
+Frontend (new terminal):
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Testing endpoints
+- Parse (file upload): POST to `/api/parse` (multipart form field `file` + optional `job_description`)
+- Optimize: POST to `/api/generate` with resume context + job description
+- Score: POST to `/api/score` (file or text + JD)
+
+Recording & deliverables
+- Include a short demo walkthrough (6–9 minutes) showing upload → optimize → enhance → download.
+- Add the Google Drive demo link above and include a short transcript under `demos/` in the repo.
+- Include `PROMPTS.md` and `backend/src/models/prompts.py` so reviewers can inspect prompt rules and the ATS scoring rationale.
+ - Include `PROMPTS.md` and `backend/src/models/prompts.py` so reviewers can inspect prompt rules and the ATS scoring rationale.
+
+For a comprehensive, authoritative description of every Gemini prompt template, the non-negotiable instructions given to the model, and the hybrid ATS scoring methodology (weights, algorithmic checks, and AI-driven components), please refer to `PROMPTS.md` in this repository.
+
+Contributing
+- Open issues and pull requests are welcome. For local development follow the Quick local setup above.
+
+License
+- MIT
+
 # OptiCV 🚀
 
 **OptiCV** is an advanced AI-powered resume optimization platform designed to help job seekers bypass Applicant Tracking Systems (ATS). By leveraging Google's **Gemini 2.5 Flash** model, OptiCV parses, analyzes, scores, and rewrites resumes to perfectly align with specific job descriptions.
