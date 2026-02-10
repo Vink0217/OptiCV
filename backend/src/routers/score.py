@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 from ..services.ats_scorer import get_ats_scorer
 from ..models.schemas import SkillGapAnalysis
 from ..services.gemini import GeminiClient
@@ -30,8 +31,10 @@ async def score_resume(
             resume_text = contents.decode("utf-8")
         except Exception:
             resume_text = contents.decode("latin-1")
+    
     scorer = get_ats_scorer()
-    ats_score = scorer.score_resume(resume_text, job_description)
+    # Run the heavy scoring logic (regex + API calls) in a threadpool
+    ats_score = await run_in_threadpool(scorer.score_resume, resume_text, job_description)
 
     # Skill gap analysis
     if job_description:

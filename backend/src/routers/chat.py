@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
+from starlette.concurrency import run_in_threadpool
 from ..models.schemas import ChatRequest
 from ..models.prompts import CHATBOT_SYSTEM_PROMPT, format_chatbot_context
 from ..services.gemini import GeminiClient

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
+from starlette.concurrency import run_in_threadpool
 from ..services.resume_parser import parse_resume_bytes
 from ..services.gemini import GeminiClient
 from ..services.ats_scorer import get_ats_scorer
@@ -17,7 +18,7 @@ async def parse_resume(file: UploadFile | None = File(None), text: str | None = 
     if file is not None:
         content = await file.read()
         try:
-            extracted_text = parse_resume_bytes(content, file.filename)
+            extracted_text = await run_in_threadpool(parse_resume_bytes, content, file.filename)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to parse file: {e}")
     else:
@@ -31,12 +32,15 @@ async def parse_resume(file: UploadFile | None = File(None), text: str | None = 
 {extracted_text}
 
 Return a structured resume with all available information."""
-        resume_data = client.generate_structured(prompt, ResumeData, temperature=0.3)
+        
+        # Run synchronous Gemini call in threadpool
+        resume_data = await run_in_threadpool(client.generate_structured, prompt=prompt, response_schema=ResumeData, temperature=0.3)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to structure resume: {e}")
 
     # Score the resume
     scorer = get_ats_scorer()
-    score = scorer.score_resume(extracted_text, job_description)
+    # Run synchronous scorer in threadpool
+    score = await run_in_threadpool(scorer.score_resume, extracted_text, job_description)
 
     return {"resume_data": resume_data.dict(), "ats_score": score.dict()}

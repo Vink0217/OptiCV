@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 from ..models.prompts import SECTION_ENHANCEMENT_PROMPT
 from ..services.gemini import GeminiClient
 from ..utils.keywords import extract_keywords
@@ -27,7 +28,8 @@ async def enhance_section(request: EnhanceRequest):
             target_role=request.target_role,
             jd_keywords=", ".join(jd_keywords[:15])
         )
-        enhanced_text = client.generate_text(prompt, temperature=0.7)
+        # Run synchronous Gemini call in threadpool
+        enhanced_text = await run_in_threadpool(client.generate_text, prompt=prompt, temperature=0.7)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to enhance section: {e}")
 
