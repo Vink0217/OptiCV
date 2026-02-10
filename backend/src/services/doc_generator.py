@@ -116,26 +116,28 @@ def generate_docx_bytes(resume: ResumeData) -> bytes:
     if resume.projects:
         _add_section_heading(doc, "Projects")
         for proj in resume.projects:
-            right = ", ".join(proj.technologies or [])
+            techs = ", ".join(proj.technologies or [])
             link = proj.link or ""
-            # If link is a URL, add hyperlink
+            
+            # 1. Title Line
             if link and (link.startswith("http://") or link.startswith("https://")):
-                p = _add_two_column_line(doc, proj.title or "", right, bold=True)
-                # Add hyperlink below
-                run = p.add_run()
-                run.text = link
-                # Add hyperlink using python-docx XML
-                from docx.oxml import OxmlElement
-                from docx.oxml.ns import qn
-                part = doc.part
-                r_id = part.relate_to(link, "hyperlink", is_external=True)
-                r = run._r
-                hyperlink = OxmlElement("w:hyperlink")
-                hyperlink.set(qn("r:id"), r_id)
-                hyperlink.append(r)
-                p._p.append(hyperlink)
+                 # Title vs Link (Clickable?) - simplistic approach: Title vs Link Text
+                 # python-docx is tricky with hyperlinks in the same run as separate text
+                 # simpler: Title on Left, Link Text on Right
+                 _add_two_column_line(doc, proj.title or "", link, bold=True)
             else:
-                _add_two_column_line(doc, proj.title or "", link if link else right, bold=True)
+                 # Just title or Title vs Link text
+                 _add_two_column_line(doc, proj.title or "", link, bold=True)
+            
+            # 2. Technologies Line
+            if techs:
+                p = doc.add_paragraph()
+                p.paragraph_format.space_before = Pt(0)
+                p.paragraph_format.space_after = Pt(0)
+                run = p.add_run(f"Technologies: {techs}")
+                _set_run_font(run, italic=True)
+
+            # 3. Description
             if proj.description:
                 _add_bullet(doc, proj.description)
 
@@ -143,7 +145,10 @@ def generate_docx_bytes(resume: ResumeData) -> bytes:
     if resume.skills:
         _add_section_heading(doc, "Skills")
         for skill in resume.skills:
-            _add_bullet(doc, skill)
+             # Clean leading bullets if present (to avoid double bulleting)
+            text = skill.lstrip(" •●-")
+            if not text: continue
+            _add_bullet(doc, text)
 
     # ── Education ────────────────────────────────────────────────
     if resume.education:

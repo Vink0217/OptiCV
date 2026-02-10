@@ -56,7 +56,7 @@ class ResumeData(BaseModel):
     email: str
     target_role: str
     summary: str = Field(..., description="Professional summary (2-3 sentences)")
-    skills: list[str] = Field(default_factory=list, description="Hard and soft skills")
+    skills: list[str] = Field(default_factory=list, description="List of categorized skill strings. Each string must represent one category (e.g. '● Languages: Python, Java').")
     experience: list[ExperienceEntry] = Field(default_factory=list)
     education: list[EducationEntry] = Field(default_factory=list)
     projects: list[ProjectEntry] = Field(default_factory=list)

@@ -97,18 +97,20 @@ def generate_pdf_bytes(resume: ResumeData) -> bytes:
             title = proj.title or ""
             techs = ", ".join(proj.technologies or [])
             link = proj.link or ""
-            # If link is a URL, make it clickable
-            if link and (link.startswith("http://") or link.startswith("https://")):
-                pdf.left_right_line(title, techs, style="B")
-                # Add clickable link below
-                pdf.set_text_color(0, 0, 255)
-                pdf.set_font("Arial", "U", 10)
-                pdf.cell(0, 8, link, link=link)
-                pdf.set_text_color(0, 0, 0)
-                pdf.set_font("Arial", "", 10)
-                pdf.ln(1)
+            
+            # 1. Title Line (Link on right if available)
+            if link:
+                pdf.left_right_line(title, link, style="B")
             else:
-                pdf.left_right_line(title, link if link else techs, style="B")
+                pdf.set_font("Times", "B", 10.5)
+                pdf.cell(0, 5, _s(title), ln=1)
+                
+            # 2. Technologies Line (New line, distinct from title)
+            if techs:
+                pdf.set_font("Times", "I", 10.5)
+                pdf.cell(0, 5, _s(f"Technologies: {techs}"), ln=1)
+
+            # 3. Description Bullets
             if proj.description:
                 pdf.bullet(proj.description, indent=2)
             pdf.ln(1)
@@ -117,7 +119,10 @@ def generate_pdf_bytes(resume: ResumeData) -> bytes:
     if resume.skills:
         pdf.section_heading("Skills")
         for skill in resume.skills:
-            pdf.bullet(skill)
+            # Clean leading bullets if present (to avoid double bulleting)
+            text = skill.lstrip(" •●-")
+            if not text: continue
+            pdf.bullet(text)
 
     # ── Education ────────────────────────────────────────────────
     if resume.education:

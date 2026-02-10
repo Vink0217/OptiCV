@@ -258,9 +258,17 @@ SUMMARY RULES (2-3 sentences ONLY)
 --------------------
 SKILLS RULES
 --------------------
-- Group skills into logical categories
-- Prioritize hard/technical skills before soft skills
-- Avoid filler skills (e.g., “MS Word” unless role-relevant)
+- Group skills into logical categories (e.g., Programming Languages, Machine Learning & AI, Backend, Tools & Platforms).
+- FORMATTING IS STRICT: Each category must be on a SINGLE LINE.
+- Use the following format for every category:
+  ● [Category Name]: [Skill 1], [Skill 2], [Skill 3] ...
+- Example output:
+  ● Programming Languages: Python & Bash
+  ● Machine Learning & AI: NumPy, Pandas, Scikit-learn, TensorFlow
+  ● Tools & Platforms: Docker, Git, VS Code
+- Do NOT list skills on separate lines.
+- Prioritize hard/technical skills before soft skills.
+- Avoid filler skills (e.g., “MS Word” unless role-relevant).
 
 --------------------
 EXPERIENCE & PROJECTS RULES
