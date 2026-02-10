@@ -16,6 +16,8 @@ export async function generateResume(input: {
   full_name: string;
   phone: string;
   email: string;
+  linkedin?: string;
+  location?: string;
   target_role: string;
   job_description?: string;
   existing_resume_text?: string;

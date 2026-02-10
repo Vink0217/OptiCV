@@ -78,14 +78,65 @@ def _build_pdf(resume: ResumeData, scale: float) -> ResumePDF:
     pdf.cell(0, 8 * scale, _s(resume.full_name), ln=1, align="C")
 
     # ── Contact line ─────────────────────────────────────────────
-    contact_parts = []
+    # Build list of items: (text, url)
+    contact_items = []
     if resume.phone:
-        contact_parts.append(resume.phone)
+        contact_items.append((resume.phone, None))
     if resume.email:
-        contact_parts.append(resume.email)
-    if contact_parts:
+        contact_items.append((resume.email, None))
+    if resume.linkedin:
+        contact_items.append(("LinkedIn", resume.linkedin))
+    if resume.location:
+        contact_items.append((resume.location, None))
+
+    if contact_items:
         pdf.set_font("Times", "", pdf.base_size)
-        pdf.cell(0, base_h, _s(" | ".join(contact_parts)), ln=1, align="C")
+        
+        # 1. Calculate total width to center the line
+        separator = " | "
+        sep_w = pdf.get_string_width(separator)
+        total_w = 0
+        
+        # Calculate width of each segment
+        widths = []
+        for i, (text, _) in enumerate(contact_items):
+            w = pdf.get_string_width(_s(text))
+            widths.append(w)
+            total_w += w
+            if i < len(contact_items) - 1:
+                total_w += sep_w
+        
+        # 2. Determine starting X
+        # Effective page width = 215.9 - L_MARGIN - R_MARGIN
+        # Center: L_MARGIN + (EffectiveWidth - TotalW) / 2
+        page_width = 215.9
+        effective_w = page_width - pdf.l_margin - pdf.r_margin
+        start_x = pdf.l_margin + (effective_w - total_w) / 2
+        
+        # 3. Draw items
+        pdf.set_y(pdf.get_y()) # Ensure we are on correct line
+        pdf.set_x(start_x)
+        
+        for i, (text, url) in enumerate(contact_items):
+            # Draw text or link
+            if url:
+                 pdf.set_text_color(0, 0, 255) # Blue
+                 # Add underline style? FPDF doesn't have easy partial underline without cell.
+                 # Simple trick: Using 'U' style if font allows, or just Blue color.
+                 # Standard Times in FPDF usually supports 'U'
+                 pdf.set_font("Times", "U", pdf.base_size)
+                 pdf.cell(widths[i], base_h, _s(text), link=url, ln=0, align="L")
+                 # Reset
+                 pdf.set_text_color(0, 0, 0)
+                 pdf.set_font("Times", "", pdf.base_size)
+            else:
+                 pdf.cell(widths[i], base_h, _s(text), ln=0, align="L")
+            
+            # Draw separator if not last
+            if i < len(contact_items) - 1:
+                pdf.cell(sep_w, base_h, separator, ln=0, align="L")
+        
+        pdf.ln(base_h) # Move to next line after loop
 
     # ── Summary ──────────────────────────────────────────────────
     if resume.summary:

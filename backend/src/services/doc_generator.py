@@ -65,6 +65,53 @@ def _add_bullet(doc, text: str):
     return p
 
 
+def add_hyperlink(paragraph, url, text, color="0000FF", underline=True):
+    """
+    A function that places a hyperlink within a paragraph object.
+    :param paragraph: The paragraph we are adding the hyperlink to.
+    :param url: A string containing the required url
+    :param text: The text displayed for the url
+    :return: The hyperlink object
+    """
+    # This gets access to the document.xml.rels file and gets a new relation id value
+    part = paragraph.part
+    r_id = part.relate_to(url, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink", is_external=True)
+
+    # Create the w:hyperlink tag and add needed values
+    hyperlink = OxmlElement('w:hyperlink')
+    hyperlink.set(qn('r:id'), r_id, )
+
+    # Create a w:r element
+    new_run = OxmlElement('w:r')
+
+    # Create a new w:rPr element
+    rPr = OxmlElement('w:rPr')
+
+    # Add color if it is given
+    if color:
+        c = OxmlElement('w:color')
+        c.set(qn('w:val'), color)
+        rPr.append(c)
+
+    # Remove underlining if it is requested
+    if not underline:
+        u = OxmlElement('w:u')
+        u.set(qn('w:val'), 'none')
+        rPr.append(u)
+    else:
+        u = OxmlElement('w:u')
+        u.set(qn('w:val'), 'single')
+        rPr.append(u)
+
+    new_run.append(rPr)
+    new_run.text = text
+    hyperlink.append(new_run)
+
+    paragraph._p.append(hyperlink)
+
+    return hyperlink
+
+
 def generate_docx_bytes(resume: ResumeData) -> bytes:
     doc = Document()
 
@@ -82,17 +129,31 @@ def generate_docx_bytes(resume: ResumeData) -> bytes:
     _set_run_font(run, size=18, bold=True)
 
     # ── Contact line ─────────────────────────────────────────────
-    contact_parts = []
+    contact_items = []
     if resume.phone:
-        contact_parts.append(resume.phone)
+        contact_items.append((resume.phone, None))
     if resume.email:
-        contact_parts.append(resume.email)
-    if contact_parts:
+        contact_items.append((resume.email, None))
+    if resume.linkedin:
+        contact_items.append(("LinkedIn", resume.linkedin))
+    if resume.location:
+        contact_items.append((resume.location, None))
+        
+    if contact_items:
         p = doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p.paragraph_format.space_before = Pt(0)
-        run = p.add_run(" | ".join(contact_parts))
-        _set_run_font(run)
+        
+        for i, (text, url) in enumerate(contact_items):
+            if i > 0:
+                run = p.add_run(" | ")
+                _set_run_font(run)
+                
+            if url:
+                add_hyperlink(p, url, text)
+            else:
+                run = p.add_run(text)
+                _set_run_font(run)
 
     # ── Summary ──────────────────────────────────────────────────
     if resume.summary:

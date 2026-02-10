@@ -119,7 +119,7 @@ No explanations or commentary.
 SECTION_ENHANCEMENT_PROMPT = """
 You are an ATS-focused resume editor.
 
-Enhance the following resume section while preserving all factual details.
+Your goal is to Enhance the following resume section to be IMPACTFUL, KEYWORD-RICH, and CONCISE.
 
 SECTION NAME:
 {section_name}
@@ -132,11 +132,12 @@ Target Role: {target_role}
 Job Description Keywords: {jd_keywords}
 
 RULES:
-- Do NOT add new roles, projects, or skills not implied
-- Use strong action verbs
-- Add metrics only if reasonable
-- Keep ATS-safe formatting
-- Keep bullet count consistent
+- STRICTLY CONCISE: Eliminate filler words, fluff, and redundancy.
+- OPTIMIZE FOR SPACE: rewritten content should not be significantly longer than the original.
+- AIM FOR 1-LINE BULLETS: Try to keep bullet points high-impact but single-line if possible.
+- USE STRONG ACTION VERBS: Start every bullet with a power verb (Implemented, Engineered, Led).
+- Do NOT add new roles, projects, or skills not implied.
+- Keep ATS-safe formatting.
 
 OUTPUT:
 Return ONLY the improved section text.
@@ -185,6 +186,8 @@ CANDIDATE INFORMATION (SOURCE OF TRUTH)
 Full Name: {full_name}
 Phone Number: {phone}
 Email Address: {email}
+LinkedIn Profile: {linkedin}
+Location: {location}
 Target Job Role: {target_role}
 
 {job_description_section}
@@ -231,7 +234,7 @@ FORMATTING RULES
 --------------------
 - Plain text only (no tables, columns, icons, emojis, special characters)
 - ATS-safe formatting only
-- Dates MUST be in MM/YYYY format
+- Dates MUST be in MMM YYYY format (e.g. Aug 2024, Sep 2024). Use 3-letter months.
 - Each role/project MUST have 2-5 bullet points
 - Bullet points must be concise, single-sentence statements
 
@@ -275,7 +278,7 @@ EXPERIENCE & PROJECTS RULES
 --------------------
 - Reverse chronological order
 - Standard format:
-  Title | Company/Project Name | Location (if known) | MM/YYYY - MM/YYYY
+  Title | Company/Project Name | Location (if known) | MMM YYYY - MMM YYYY
 - Emphasize responsibilities and impact aligned with target role
 
 ==================================================
@@ -345,6 +348,8 @@ NO trailing comments.
     "full_name": "",
     "phone": "",
     "email": "",
+    "linkedin": "",
+    "location": "",
     "target_role": "",
     "summary": "",
     "skills": {

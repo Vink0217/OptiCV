@@ -35,9 +35,9 @@ CACHE_TTL = 60 * 60 * 24 * 7  # 7 days
 
 def _get_cache_key(input_data: ResumeInput) -> str:
     """Generate cache key from input data."""
-    # Version 2: invalidated previous cache to ensure new Skills formatting is applied
-    CACHE_VERSION = "v2"
-    content = f"{CACHE_VERSION}|{input_data.full_name}|{input_data.email}|{input_data.target_role}|{input_data.job_description or ''}|{input_data.existing_resume_text or ''}"
+    # Version 3: invalidated previous cache to ensure LinkedIn/Location fields are processed
+    CACHE_VERSION = "v3"
+    content = f"{CACHE_VERSION}|{input_data.full_name}|{input_data.email}|{input_data.linkedin or ''}|{input_data.location or ''}|{input_data.target_role}|{input_data.job_description or ''}|{input_data.existing_resume_text or ''}"
     return hashlib.sha256(content.encode("utf-8")).hexdigest()
 
 
@@ -132,6 +132,10 @@ async def generate_resume(input_data: ResumeInput):
         ).replace(
             "{email}", input_data.email
         ).replace(
+            "{linkedin}", input_data.linkedin or ""
+        ).replace(
+            "{location}", input_data.location or ""
+        ).replace(
             "{target_role}", input_data.target_role
         ).replace(
             "{job_description_section}", format_job_description_section(input_data.job_description)
@@ -146,8 +150,13 @@ async def generate_resume(input_data: ResumeInput):
             temperature=0.7
         )
         
+        # Override contact info with input data to ensure accuracy
+        resume_data_dict = result.resume_data.dict()
+        resume_data_dict["linkedin"] = input_data.linkedin
+        resume_data_dict["location"] = input_data.location
+        
         response = {
-            "resume_data": result.resume_data.dict(),
+            "resume_data": resume_data_dict,
             "ats_score": result.ats_score.dict()
         }
         

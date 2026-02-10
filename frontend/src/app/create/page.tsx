@@ -30,7 +30,10 @@ import {
   GraduationCap,
   FolderKanban,
   Building2,
+  Edit2, // Added
+  Eye,   // Added
 } from "lucide-react";
+import ResumePreview from "@/components/resume-preview"; // Enhanced component
 
 // ── Optional section entry types ──
 interface EduEntry {
@@ -106,10 +109,15 @@ export default function CreatePage() {
   const [loading, setLoading] = useState(false);
   const [enhancingSection, setEnhancingSection] = useState<string | null>(null);
 
+  // Edit Mode for Step 3
+  const [isEditingInDownload, setIsEditingInDownload] = useState(false);
+
   // Step 1 — required fields
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [linkedin, setLinkedin] = useState("");
+  const [location, setLocation] = useState("");
   const [targetRole, setTargetRole] = useState("");
   const [jobDescription, setJobDescription] = useState("");
 
@@ -130,6 +138,8 @@ export default function CreatePage() {
       setFullName(sample.full_name ?? '');
       setPhone(sample.phone ?? '');
       setEmail(sample.email ?? '');
+      setLinkedin(sample.linkedin ?? '');
+      setLocation(sample.location ?? '');
       setTargetRole(sample.target_role ?? '');
       if (sample.experience) {
         setExperience(sample.experience.map((ex: any) => ({
@@ -231,6 +241,8 @@ export default function CreatePage() {
         full_name: fullName,
         phone,
         email,
+        linkedin: linkedin || undefined,
+        location: location || undefined,
         target_role: targetRole,
         job_description: jobDescription || undefined,
         existing_resume_text: existingText,
@@ -377,6 +389,22 @@ export default function CreatePage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="Your Phone Number"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">LinkedIn (Optional)</label>
+                <Input
+                  value={linkedin}
+                  onChange={(e) => setLinkedin(e.target.value)}
+                  placeholder="LinkedIn Profile URL"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium">Location (Optional)</label>
+                <Input
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="City, Country"
                 />
               </div>
             </div>
@@ -750,7 +778,8 @@ export default function CreatePage() {
 
       {/* ── Step 3: Score & Download ── */}
       {step === 3 && resumeData && (
-        <div className="space-y-4">
+        <div className="space-y-6">
+          {/* ATS Score Card */}
           {atsScore && (
             <Card>
               <CardHeader>
@@ -758,9 +787,7 @@ export default function CreatePage() {
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-6">
-                  <div
-                    className={`text-5xl font-bold ${scoreColor}`}
-                  >
+                  <div className={`text-5xl font-bold ${scoreColor}`}>
                     {atsScore.overall_score}
                   </div>
                   <div className="flex-1 space-y-1 text-sm text-muted-foreground">
@@ -778,6 +805,7 @@ export default function CreatePage() {
             </Card>
           )}
 
+          {/* Download & Actions Bar */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -785,31 +813,134 @@ export default function CreatePage() {
                 Download
               </CardTitle>
               <CardDescription>
-                Download your resume as PDF or DOCX.
+                Review the preview below. Download as PDF/DOCX or make final edits here.
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex gap-3">
-              <Button onClick={() => handleDownload("pdf")} disabled={downloading}>
-                {downloading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : null}
-                Download PDF
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => handleDownload("docx")}
-                disabled={downloading}
+            <CardContent className="flex flex-col md:flex-row gap-3 justify-between items-center">
+              <div className="flex gap-3 w-full md:w-auto">
+                <Button onClick={() => handleDownload("pdf")} disabled={downloading}>
+                  {downloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Download PDF
+                </Button>
+                <Button variant="outline" onClick={() => handleDownload("docx")} disabled={downloading}>
+                  Download DOCX
+                </Button>
+              </div>
+              
+              <Button 
+                variant={isEditingInDownload ? "secondary" : "ghost"}
+                onClick={() => setIsEditingInDownload(!isEditingInDownload)}
+                className="w-full md:w-auto"
               >
-                Download DOCX
+                {isEditingInDownload ? <Eye className="mr-2 h-4 w-4"/> : <Edit2 className="mr-2 h-4 w-4"/>}
+                {isEditingInDownload ? "Hide Editor" : "Edit Resume"}
               </Button>
             </CardContent>
           </Card>
 
-          <div className="flex justify-start">
-            <Button variant="outline" onClick={() => setStep(2)}>
-              <ChevronLeft className="mr-1 h-4 w-4" /> Back to Edit
-            </Button>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+             {/* Main Preview Column */}
+             <div className={`${isEditingInDownload ? "lg:col-span-7" : "lg:col-span-12"} transition-all duration-300`}>
+                <div className="border border-gray-200 rounded-lg overflow-hidden bg-gray-50 p-4 shadow-inner">
+                    <div className="mx-auto overflow-auto max-h-[850px] flex justify-center bg-gray-100 rounded">
+                      {/* Live Preview - adjusted scaling for better readability */}
+                      <ResumePreview 
+                          data={resumeData} 
+                          className={`origin-top transition-transform duration-300 shadow-xl mb-8 ${
+                            isEditingInDownload 
+                              ? "scale-[0.60] lg:scale-[0.70]" 
+                              : "scale-[0.65] lg:scale-[0.75]"
+                          }`}
+                          summaryOverride={summary}
+                          skillsOverride={skills.split("\n").filter(Boolean)}
+                      />
+                    </div>
+                </div>
+             </div>
+
+             {/* Editing Side Panel */}
+             {isEditingInDownload && (
+               <div className="lg:col-span-5 space-y-4 animate-in slide-in-from-right-4 duration-300">
+                  <Card className="sticky top-4">
+                    <CardHeader>
+                       <CardTitle className="text-lg">Quick Editor</CardTitle>
+                       <CardDescription>Make changes and see them live.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6 max-h-[700px] overflow-y-auto">
+                       {/* Summary Editor */}
+                       <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-sm font-semibold">Summary</label>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEnhance("summary", summary)}
+                            disabled={enhancingSection === "summary"}
+                          >
+                            {enhancingSection === "summary" ? (
+                              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                            ) : (
+                              <Sparkles className="mr-1 h-3 w-3" />
+                            )}
+                            Enhance
+                          </Button>
+                        </div>
+                        <Textarea
+                          rows={6}
+                          value={summary}
+                          onChange={(e) => setSummary(e.target.value)}
+                        />
+                      </div>
+
+                      {/* Skills Editor */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-sm font-semibold">
+                            Skills <span className="text-muted-foreground font-normal">(one per line)</span>
+                          </label>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleEnhance("skills", skills)}
+                            disabled={enhancingSection === "skills"}
+                          >
+                            {enhancingSection === "skills" ? (
+                              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                            ) : (
+                              <Sparkles className="mr-1 h-3 w-3" />
+                            )}
+                            Enhance
+                          </Button>
+                        </div>
+                        <Textarea
+                          rows={8}
+                          value={skills}
+                          onChange={(e) => setSkills(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="pt-4 border-t">
+                        <p className="text-xs text-muted-foreground mb-2">
+                          Need to change Experience or Projects?
+                        </p>
+                         <Button variant="outline" size="sm" className="w-full" onClick={() => setStep(1)}>
+                            <ChevronLeft className="mr-1 h-3 w-3" /> Edit Details (Regenerate)
+                         </Button>
+                      </div>
+
+                    </CardContent>
+                  </Card>
+               </div>
+             )}
           </div>
+          
+           {!isEditingInDownload && (
+            <div className="flex justify-start">
+                <Button variant="outline" onClick={() => setStep(2)}>
+                <ChevronLeft className="mr-1 h-4 w-4" /> Back to Step 2
+                </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

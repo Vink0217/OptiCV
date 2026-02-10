@@ -14,6 +14,8 @@ class ResumeInput(BaseModel):
     full_name: str = Field(..., description="Full name of the candidate")
     phone: str = Field(..., description="Contact phone number")
     email: EmailStr = Field(..., description="Email address")
+    linkedin: Optional[str] = Field(None, description="LinkedIn profile URL")
+    location: Optional[str] = Field(None, description="City, State/Country")
     target_role: str = Field(..., description="Target job role/title")
     job_description: Optional[str] = Field(None, description="Optional job description to optimize for")
     existing_resume_text: Optional[str] = Field(None, description="Optional existing resume text (extracted from upload)")
@@ -54,6 +56,8 @@ class ResumeData(BaseModel):
     full_name: str
     phone: str
     email: str
+    linkedin: Optional[str] = None
+    location: Optional[str] = None
     target_role: str
     summary: str = Field(..., description="Professional summary (2-3 sentences)")
     skills: list[str] = Field(default_factory=list, description="List of categorized skill strings. Each string must represent one category (e.g. '● Languages: Python, Java').")

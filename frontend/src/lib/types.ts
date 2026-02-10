@@ -29,6 +29,8 @@ export interface ResumeData {
   full_name: string;
   phone: string;
   email: string;
+  linkedin?: string;
+  location?: string;
   target_role: string;
   summary: string;
   skills: string[];
