@@ -1,5 +1,5 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "opti-cv-flame.vercel.app/:path*" }
+    { "source": "/api/:path*", "destination": "https://opti-cv-flame.vercel.app/:path*" }
   ]
 }
