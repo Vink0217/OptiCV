@@ -86,6 +86,7 @@ NON-NEGOTIABLE RULES
   - Certifications
 - DO NOT remove experience
 - DO NOT exaggerate responsibilities
+- PRESERVE ALL HYPERLINKS (Github, LinkedIn, etc.)
 
 =====================
 INPUTS
@@ -246,6 +247,7 @@ CONTENT RULES
 - Start EVERY bullet point with a strong action verb
 - Quantify impact where logically possible (%, $, time, scale)
 - Prioritize relevance to the target role over verbosity
+- CRITICAL: PRESERVE ALL HYPERLINKS (especially GitHub, Portfolio, Demos). DO NOT REMOVE URLs.
 
 --------------------
 SUMMARY RULES (2-3 sentences ONLY)

@@ -34,7 +34,7 @@ class GeminiClient:
         Generate structured output using Gemini.
         
         Args:
-            prompt: The prompt to send to Gemini
+            prompt: The prompt to send to Gemini    
             response_schema: Pydantic model class defining expected output structure
             temperature: Creativity level (0.0 = deterministic, 1.0 = creative)
         
